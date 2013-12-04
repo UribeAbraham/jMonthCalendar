@@ -8,24 +8,41 @@
 *
 */
 (function($) {
-	var _beginDate;
-	var _endDate;
-	var _boxes = [];
-	var _eventObj = {};
 	
-	var _workingDate = null;
-	var _daysInMonth = 0;
-	var _firstOfMonth = null;
-	var _lastOfMonth = null;
-	var _gridOffset = 0;
-	var _totalDates = 0;
-	var _gridRows = 0;
-	var _totalBoxes = 0;
-	var _dateRange = { startDate: null, endDate: null };
+	$.fn.jMonthCalendar=function(){
+		var arrayjmonth=[];
+		this.each(function(){
+			if(!$(this).data("jMonthCalendar")){
+				$(this).data("jMonthCalendar",new jMonthCalendar());
+				arrayjmonth.push($(this).data("jMonthCalendarjMonthCalendar"));
+			}
+		});
+		if(this.length>1){
+			
+			return arrayjmonth;
+		}
+		else{
+			return $(this).data("jMonthCalendar");
+		}
+	};
+	var jMonthCalendar=function(){
+	var calendar=this;
+	this._boxes = [];
+	this._eventObj = {};
+	
+	this._workingDate = null;
+	this._daysInMonth = 0;
+	this._firstOfMonth = null;
+	this._lastOfMonth = null;
+	this._gridOffset = 0;
+	this._totalDates = 0;
+	this._gridRows = 0;
+	this._totalBoxes = 0;
+	this._dateRange = { startDate: null, endDate: null };
 	
 	
-	var cEvents = [];
-	var def = {
+	this.cEvents = [];
+	this.def = {
 			containerId: "#jMonthCalendar",
 			headerHeight: 50,
 			firstDayOfWeek: 0,
@@ -53,10 +70,8 @@
 			onEventDropped: function() {},
 			onShowMoreClick: function() {}
 		};
-		
-	$.jMonthCalendar = $.J = function() {};
 	
-	var _getJSONDate = function(dateStr) {
+	this._getJSONDate = function(dateStr) {
 		//check conditions for different types of accepted dates
 		var tDt, k;
 		if (typeof dateStr == "string") {
@@ -98,13 +113,13 @@
 	};
 	
 	//This function will clean the JSON array, primaryly the dates and put the correct ones in the object.  Intended to alwasy be called on event functions.
-	var _filterEventCollection = function() {
-		if (cEvents && cEvents.length > 0) {
+	this._filterEventCollection = function() {
+		if (calendar.cEvents && calendar.cEvents.length > 0) {
 			var multi = [];
 			var single = [];
 			
 			//Update and parse all the dates
-			$.each(cEvents, function(){
+			$.each(calendar.cEvents, function(){
 				var ev = this;
 				//Date Parse the JSON to create a new Date to work with here				
 				if(ev.StartDateTime) {
@@ -131,91 +146,91 @@
 				}
 			});
 			
-			multi.sort(_eventSort);
-			single.sort(_eventSort);
-			cEvents = [];
-			$.merge(cEvents, multi);
-			$.merge(cEvents, single);
+			multi.sort(calendar._eventSort);
+			single.sort(calendar._eventSort);
+			calendar.cEvents = [];
+			$.merge(calendar.cEvents, multi);
+			$.merge(calendar.cEvents, single);
 		}
 	};
 	
-	var _eventSort = function(a, b) {
+	this._eventSort = function(a, b) {
 		return a.StartDateTime.compareTo(b.StartDateTime);
 	};
 	
-	var _clearBoxes = function() {
-		_clearBoxEvents();
-		_boxes = [];
+	this._clearBoxes = function() {
+		calendar._clearBoxEvents();
+		calendar._boxes = [];
 	};
 	
-	var _clearBoxEvents = function() {
-		for (var i = 0; i < _boxes.length; i++) {
-			_boxes[i].clear();
+	this._clearBoxEvents = function() {
+		for (var i = 0; i < calendar._boxes.length; i++) {
+			calendar._boxes[i].clear();
 		}
-		_eventObj = {};
+		calendar._eventObj = {};
 	};
 	
-	var _initDates = function(dateIn) {
-		var today = def.calendarStartDate;
+	this._initDates = function(dateIn) {
+		var today = calendar.def.calendarStartDate;
 		if(dateIn == undefined) {
-			_workingDate = new Date(today.getFullYear(), today.getMonth(), 1);
+			calendar._workingDate = new Date(today.getFullYear(), today.getMonth(), 1);
 		} else {
-			_workingDate = dateIn;
-			_workingDate.setDate(1);
+			calendar._workingDate = dateIn;
+			calendar._workingDate.setDate(1);
 		}
 		
-		_daysInMonth = _workingDate.getDaysInMonth();
-		_firstOfMonth = _workingDate.clone().moveToFirstDayOfMonth();
-		_lastOfMonth = _workingDate.clone().moveToLastDayOfMonth();
-		_gridOffset = _firstOfMonth.getDay() - def.firstDayOfWeek;
-		_totalDates = _gridOffset + _daysInMonth;
-		_gridRows = Math.ceil(_totalDates / 7);
-		_totalBoxes = _gridRows * 7;
+		calendar._daysInMonth = calendar._workingDate.getDaysInMonth();
+		calendar._firstOfMonth = calendar._workingDate.clone().moveToFirstDayOfMonth();
+		calendar._lastOfMonth = calendar._workingDate.clone().moveToLastDayOfMonth();
+		calendar._gridOffset = calendar._firstOfMonth.getDay() - calendar.def.firstDayOfWeek;
+		calendar._totalDates = calendar._gridOffset + calendar._daysInMonth;
+		calendar._gridRows = Math.ceil(calendar._totalDates / 7);
+		calendar._totalBoxes = calendar._gridRows * 7;
 		
-		_dateRange.startDate = _firstOfMonth.clone().addDays((-1) * _gridOffset);
-		_dateRange.endDate = _lastOfMonth.clone().addDays(_totalBoxes - (_daysInMonth + _gridOffset));
+		calendar._dateRange.startDate = calendar._firstOfMonth.clone().addDays((-1) * calendar._gridOffset);
+		calendar._dateRange.endDate = calendar._lastOfMonth.clone().addDays(calendar._totalBoxes - (calendar._daysInMonth + calendar._gridOffset));
 	};
 	
-	var _initHeaders = function() {
+	this._initHeaders = function() {
 		// Create Previous Month link for later
-		var prevMonth = _workingDate.clone().addMonths(-1);
-		var prevMLink = $('<div class="MonthNavPrev"><a class="link-prev">'+ def.navLinks.p +'</a></div>').click(function() {
-			$.J.ChangeMonth(prevMonth);
+		var prevMonth = calendar._workingDate.clone().addMonths(-1);
+		var prevMLink = $('<div class="MonthNavPrev"><a class="link-prev">'+ calendar.def.navLinks.p +'</a></div>').click(function() {
+			calendar.ChangeMonth(prevMonth);
 			return false;
 		});
 		
 		//Create Next Month link for later
-		var nextMonth = _workingDate.clone().addMonths(1);
-		var nextMLink = $('<div class="MonthNavNext"><a class="link-next">'+ def.navLinks.n +'</a></div>').click(function() {
-			$.J.ChangeMonth(nextMonth);
+		var nextMonth = calendar._workingDate.clone().addMonths(1);
+		var nextMLink = $('<div class="MonthNavNext"><a class="link-next">'+ calendar.def.navLinks.n +'</a></div>').click(function() {
+			calendar.ChangeMonth(nextMonth);
 			return false;
 		});
 		
 		//Create Previous Year link for later
-		var prevYear = _workingDate.clone().addYears(-1);
+		var prevYear = calendar._workingDate.clone().addYears(-1);
 		var prevYLink;
-		if(def.navLinks.enablePrevYear) {
+		if(calendar.def.navLinks.enablePrevYear) {
 			prevYLink = $('<div class="YearNavPrev"><a>'+ prevYear.getFullYear() +'</a></div>').click(function() {
-				$.J.ChangeMonth(prevYear);
+				calendar.ChangeMonth(prevYear);
 				return false;
 			});
 		}
 		
 		//Create Next Year link for later
-		var nextYear = _workingDate.clone().addYears(1);
+		var nextYear = calendar._workingDate.clone().addYears(1);
 		var nextYLink;
-		if(def.navLinks.enableNextYear) {
+		if(calendar.def.navLinks.enableNextYear) {
 			nextYLink = $('<div class="YearNavNext"><a>'+ nextYear.getFullYear() +'</a></div>').click(function() {
-				$.J.ChangeMonth(nextYear);
+				calendar.ChangeMonth(nextYear);
 				return false;
 			});
 		}
 		
 		var todayLink;
-		if(def.navLinks.enableToday) {
+		if(calendar.def.navLinks.enableToday) {
 			//Create Today link for later
-			todayLink = $('<div class="TodayLink"><a class="link-today">'+ def.navLinks.t +'</a></div>').click(function() {
-				$.J.ChangeMonth(new Date());
+			todayLink = $('<div class="TodayLink"><a class="link-today">'+ calendar.def.navLinks.t +'</a></div>').click(function() {
+				calendar.ChangeMonth(new Date());
 				return false;
 			});
 		}
@@ -225,64 +240,62 @@
 		var navHead = $('.MonthNavigation', navRow);
 		
 		navHead.append(prevMLink, nextMLink);
-		if(def.navLinks.enableToday) { navHead.append(todayLink); }
+		if(calendar.def.navLinks.enableToday) { navHead.append(todayLink); }
 
-		navHead.append($('<div class="MonthName"></div>').append(Date.CultureInfo.monthNames[_workingDate.getMonth()] + " " + _workingDate.getFullYear()));
+		navHead.append($('<div class="MonthName"></div>').append(Date.CultureInfo.monthNames[calendar._workingDate.getMonth()] + " " + calendar._workingDate.getFullYear()));
 		
-		if(def.navLinks.enablePrevYear) { navHead.append(prevYLink); }
-		if(def.navLinks.enableNextYear) { navHead.append(nextYLink); }
+		if(calendar.def.navLinks.enablePrevYear) { navHead.append(prevYLink); }
+		if(calendar.def.navLinks.enableNextYear) { navHead.append(nextYLink); }
 		
 		
 		//  Days
 		var headRow = $("<tr></tr>");		
-		for (var i = def.firstDayOfWeek; i < def.firstDayOfWeek+7; i++) {
+		for (var i = calendar.def.firstDayOfWeek; i < calendar.def.firstDayOfWeek+7; i++) {
 			var weekday = i % 7;
 			var wordday = Date.CultureInfo.dayNames[weekday];
 			headRow.append('<th title="' + wordday + '" class="DateHeader' + (weekday == 0 || weekday == 6 ? ' Weekend' : '') + '"><span>' + wordday + '</span></th>');
 		}
 		
-		headRow = $("<thead id=\"CalendarHead\"></thead>").css({ "height" : def.headerHeight + "px" }).append(headRow);
+		headRow = $("<thead id=\"CalendarHead\"></thead>").css({ "height" : calendar.def.headerHeight + "px" }).append(headRow);
 		headRow = headRow.prepend(navRow);
 		return headRow;
 	};
-	
-	
-	
-	$.J.DrawCalendar = function(dateIn){
+
+	calendar.DrawCalendar = function(dateIn){
 		var now = new Date();
 		now.clearTime();
 		
-		var today = def.calendarStartDate;
+		var today = calendar.def.calendarStartDate;
 		
-		_clearBoxes();
+		calendar._clearBoxes();
 		
-		_initDates(dateIn);
-		var headerRow = _initHeaders();
+		calendar._initDates(dateIn);
+		var headerRow = calendar._initHeaders();
 		
 		//properties
-		var isCurrentMonth = (_workingDate.getMonth() == today.getMonth() && _workingDate.getFullYear() == today.getFullYear());
-		var containerHeight = $(def.containerId).outerHeight();
-		var rowHeight = (containerHeight - def.headerHeight) / _gridRows;
+		var isCurrentMonth = (calendar._workingDate.getMonth() == today.getMonth() && calendar._workingDate.getFullYear() == today.getFullYear());
+		var containerHeight = $(calendar.def.containerId).outerHeight();
+		var rowHeight = (containerHeight - calendar.def.headerHeight) / calendar._gridRows;
 		var row = null;
 
 		//Build up the Body
 		var tBody = $('<tbody id="CalendarBody"></tbody>');
 		
-		for (var i = 0; i < _totalBoxes; i++) {
-			var currentDate = _dateRange.startDate.clone().addDays(i);
+		for (var i = 0; i < calendar._totalBoxes; i++) {
+			var currentDate = calendar._dateRange.startDate.clone().addDays(i);
 			if (i % 7 == 0 || i == 0) {
 				row = $("<tr></tr>");
 				row.css({ "height" : rowHeight + "px" });
 				tBody.append(row);
 			}
 			
-			var weekday = (def.firstDayOfWeek + i) % 7;
+			var weekday = (calendar.def.firstDayOfWeek + i) % 7;
 			var atts = {'class':"DateBox" + (weekday == 0 || weekday == 6 ? ' Weekend ' : ''),
 						'date':currentDate.toString("M/d/yyyy")
 			};
 			
 			//dates outside of month range.
-			if (currentDate.compareTo(_firstOfMonth) == -1 || currentDate.compareTo(_lastOfMonth) == 1) {
+			if (currentDate.compareTo(calendar._firstOfMonth) == -1 || currentDate.compareTo(calendar._lastOfMonth) == 1) {
 				atts['class'] += ' Inactive';
 			}
 			
@@ -293,22 +306,22 @@
 			
 			//DateBox Events
 			var dateLink = $('<div class="DateLabel"><a>' + currentDate.getDate() + '</a></div>');
-			dateLink.bind('click', { Date: currentDate.clone() }, def.onDayLinkClick);
+			dateLink.bind('click', { Date: currentDate.clone() }, calendar.def.onDayLinkClick);
 			
 			var dateBox = $("<td></td>").attr(atts).append(dateLink);
-			dateBox.bind('dblclick', { Date: currentDate.clone() }, def.onDayCellDblClick);
-			dateBox.bind('click', { Date: currentDate.clone() }, def.onDayCellClick);
+			dateBox.bind('dblclick', { Date: currentDate.clone() }, calendar.def.onDayCellDblClick);
+			dateBox.bind('click', { Date: currentDate.clone() }, calendar.def.onDayCellClick);
 			
-			if (def.dragableEvents) {
+			if (calendar.def.dragableEvents) {
 				dateBox.droppable({
-					hoverClass: def.dragHoverClass,
+					hoverClass: calendar.def.dragHoverClass,
 					tolerance: 'pointer',
 					drop: function(ev, ui) {
 						var eventId = ui.draggable.attr("eventid")
 						var newDate = new Date($(this).attr("date")).clearTime();
 						
 						var event;
-						$.each(cEvents, function() {
+						$.each(calendar.cEvents, function() {
 							if (this.EventID == eventId) {
 								var days = new TimeSpan(newDate - this.StartDateTime).days;
 								
@@ -319,60 +332,60 @@
 							}
 						});
 						
-						$.J.ClearEventsOnCalendar();
-						_drawEventsOnCalendar();
+						calendar.ClearEventsOnCalendar();
+						calendar._drawEventsOnCalendar();
 						
-						def.onEventDropped.call(this, event, newDate);
+						calendar.def.onEventDropped.call(this, event, newDate);
 					}
 				});
 			}
 			
-			_boxes.push(new CalendarBox(i, currentDate, dateBox, dateLink));
+			calendar._boxes.push(new CalendarBox(i, currentDate, dateBox, dateLink));
 			row.append(dateBox);
 		}
 		tBody.append(row);
 
-		var a = $(def.containerId);
+		var a = $(calendar.def.containerId);
 		var cal = $('<table class="MonthlyCalendar" cellpadding="0" tablespacing="0"></table>').append(headerRow, tBody);
 		
 		a.hide();
 		a.html(cal);
 		a.fadeIn("normal");
 		
-		_drawEventsOnCalendar();
+		calendar._drawEventsOnCalendar();
 	}
 	
-	var _drawEventsOnCalendar = function() {
+	this._drawEventsOnCalendar = function() {
 		//filter the JSON array for proper dates
-		_filterEventCollection();
-		_clearBoxEvents();
+		calendar._filterEventCollection();
+		calendar._clearBoxEvents();
 		
-		if (cEvents && cEvents.length > 0) {
-			var container = $(def.containerId);			
+		if (calendar.cEvents && calendar.cEvents.length > 0) {
+			var container = $(calendar.def.containerId);			
 			
-			$.each(cEvents, function(){
+			$.each(calendar.cEvents, function(){
 				var ev = this;
 				//alert("eventID: " + ev.EventID + ", start: " + ev.StartDateTime + ",end: " + ev.EndDateTime);
 				
 				var tempStartDT = ev.StartDateTime.clone().clearTime();
 				var tempEndDT = ev.EndDateTime.clone().clearTime();
 				
-				var startI = new TimeSpan(tempStartDT - _dateRange.startDate).days;
-				var endI = new TimeSpan(tempEndDT - _dateRange.startDate).days;
+				var startI = new TimeSpan(tempStartDT - calendar._dateRange.startDate).days;
+				var endI = new TimeSpan(tempEndDT - calendar._dateRange.startDate).days;
 				//alert("start I: " + startI + " end I: " + endI);
 				
 				var istart = (startI < 0) ? 0 : startI;
-				var iend = (endI > _boxes.length - 1) ? _boxes.length - 1 : endI;
+				var iend = (endI > calendar._boxes.length - 1) ? calendar._boxes.length - 1 : endI;
 				//alert("istart: " + istart + " iend: " + iend);
 				
 				
 				for (var i = istart; i <= iend; i++) {
-					var b = _boxes[i];
+					var b = calendar._boxes[i];
 
 					var startBoxCompare = tempStartDT.compareTo(b.date);
 					var endBoxCompare = tempEndDT.compareTo(b.date);
 
-					var continueEvent = ((i != 0 && startBoxCompare == -1 && endBoxCompare >= 0 && b.weekNumber != _boxes[i - 1].weekNumber) || (i == 0 && startBoxCompare == -1));
+					var continueEvent = ((i != 0 && startBoxCompare == -1 && endBoxCompare >= 0 && b.weekNumber != calendar._boxes[i - 1].weekNumber) || (i == 0 && startBoxCompare == -1));
 					var toManyEvents = (startBoxCompare == 0 || (i == 0 && startBoxCompare == -1) || 
 										continueEvent || (startBoxCompare == -1 && endBoxCompare >= 0)) && b.vOffset >= (b.getCellBox().height() - b.getLabelHeight() - 32);
 					
@@ -382,7 +395,7 @@
 					
 					if (toManyEvents) {
 						if (!b.isTooManySet) {
-							var moreDiv = $('<div class="MoreEvents" id="ME_' + i + '">' + def.navLinks.showMore + '</div>');
+							var moreDiv = $('<div class="MoreEvents" id="ME_' + i + '">' + calendar.def.navLinks.showMore + '</div>');
 							var pos = b.getCellPosition();
 							var index = i;
 
@@ -392,9 +405,9 @@
 								"width" : (b.getLabelWidth() - 7),
 								"position" : "absolute" });
 							
-							moreDiv.click(function(e) { _showMoreClick(e, index); });
+							moreDiv.click(function(e) { calendar._showMoreClick(e, index); });
 							
-							_eventObj[moreDiv.attr("id")] = moreDiv;
+							calendar._eventObj[moreDiv.attr("id")] = moreDiv;
 							b.isTooManySet = true;
 						} //else update the +more to show??
 						b.events.push(ev);
@@ -413,15 +426,15 @@
 						if (continueEvent) {
 							block.prepend($('<span />').addClass("ui-icon").addClass("ui-icon-triangle-1-w"));
 							
-							var e = _eventObj['Event_' + ev.EventID + '_' + (b.weekNumber - 1)];
+							var e = calendar._eventObj['Event_' + ev.EventID + '_' + (b.weekNumber - 1)];
 							if (e) { e.prepend($('<span />').addClass("ui-icon").addClass("ui-icon-triangle-1-e")); }
 						}
 						
-						_eventObj[block.attr("id")] = block;
+						calendar._eventObj[block.attr("id")] = block;
 						
 						b.events.push(ev);
 					} else if (startBoxCompare == -1 && endBoxCompare >= 0) {
-						var e = _eventObj['Event_' + ev.EventID + '_' + b.weekNumber];
+						var e = calendar._eventObj['Event_' + ev.EventID + '_' + b.weekNumber];
 						if (e) {
 							var w = e.css("width")
 							e.css({ "width" : (parseInt(w) + b.getLabelWidth() + 1) });
@@ -432,29 +445,29 @@
 					
 					//end of month continue
 					if (i == iend && endBoxCompare > 0) {
-						var e = _eventObj['Event_' + ev.EventID + '_' + b.weekNumber];
+						var e = calendar._eventObj['Event_' + ev.EventID + '_' + b.weekNumber];
 						if (e) { e.prepend($('<span />').addClass("ui-icon").addClass("ui-icon-triangle-1-e")); }
 					}
 				}
 			});
 			
-			for (var o in _eventObj) {
-				_eventObj[o].hide();
-				container.append(_eventObj[o]);
-				_eventObj[o].show();
+			for (var o in calendar._eventObj) {
+				calendar._eventObj[o].hide();
+				container.append(calendar._eventObj[o]);
+				calendar._eventObj[o].show();
 			}
 		}
 	}
 	
-	var _buildEventBlock = function(ev, weekNumber) {
+	this._buildEventBlock = function(ev, weekNumber) {
 		var block = $('<div class="Event" id="Event_' + ev.EventID + '_' + weekNumber + '" eventid="' + ev.EventID +'"></div>');
 		
 		if(ev.CssClass) { block.addClass(ev.CssClass) }
-		block.bind('click', { Event: ev }, def.onEventBlockClick);
-		block.bind('mouseover', { Event: ev }, def.onEventBlockOver);
-		block.bind('mouseout', { Event: ev }, def.onEventBlockOut);
+		block.bind('click', { Event: ev }, calendar.def.onEventBlockClick);
+		block.bind('mouseover', { Event: ev }, calendar.def.onEventBlockOver);
+		block.bind('mouseout', { Event: ev }, calendar.def.onEventBlockOut);
 		
-		if (def.dragableEvents) {
+		if (calendar.def.dragableEvents) {
 			_dragableEvent(ev, block, weekNumber);
 		}
 		
@@ -465,12 +478,12 @@
 			link = $('<a>' + ev.Title + '</a>');
 		}
 		
-		link.bind('click', { Event: ev }, def.onEventLinkClick);
+		link.bind('click', { Event: ev }, calendar.def.onEventLinkClick);
 		block.append(link);
 		return block;
 	}	
 
-	var _dragableEvent = function(event, block, weekNumber) {
+	this._dragableEvent = function(event, block, weekNumber) {
 		block.draggable({
 			zIndex: 4,
 			delay: 50,
@@ -479,72 +492,73 @@
 			cursorAt: { left: 5 },
 			start: function(ev, ui) {
 				//hide any additional event parts
-				for (var i = 0; i <= _gridRows; i++) {
+				for (var i = 0; i <= calendar._gridRows; i++) {
 					if (i == weekNumber) {
 						continue;
 					}
 					
-					var e = _eventObj['Event_' + event.EventID + '_' + i];
+					var e = calendar._eventObj['Event_' + event.EventID + '_' + i];
 					if (e) { e.hide(); }
 				}
 			}
 		});
 	}
 	
-	var _showMoreClick = function(e, boxIndex) {
-		var box = _boxes[boxIndex];
-		def.onShowMoreClick.call(this, box.events);
+	this._showMoreClick = function(e, boxIndex) {
+		var box = calendar._boxes[boxIndex];
+		calendar.def.onShowMoreClick.call(this, box.events);
 		e.stopPropagation();
 	}
 	
 	
-	$.J.ClearEventsOnCalendar = function() {
-		_clearBoxEvents();
-		$(".Event", $(def.containerId)).remove();
-		$(".MoreEvents", $(def.containerId)).remove();
+	calendar.ClearEventsOnCalendar = function() {
+		calendar._clearBoxEvents();
+		$(".Event", $(calendar.def.containerId)).remove();
+		$(".MoreEvents", $(calendar.def.containerId)).remove();
 	}
 	
-	$.J.AddEvents = function(eventCollection) {
+	calendar.AddEvents = function(eventCollection) {
 		if(eventCollection) {
 			if(eventCollection.length > 0) {
-				$.merge(cEvents, eventCollection);
+				$.merge(calendar.cEvents, eventCollection);
 			} else {
-				cEvents.push(eventCollection);
+				calendar.cEvents.push(eventCollection);
 			}
-			$.J.ClearEventsOnCalendar();
-			_drawEventsOnCalendar();
+			calendar.ClearEventsOnCalendar();
+			calendar._drawEventsOnCalendar();
 		}
 	}
 	
-	$.J.ReplaceEventCollection = function(eventCollection) {
+	calendar.ReplaceEventCollection = function(eventCollection) {
 		if(eventCollection) {
-			cEvents = [];
-			cEvents = eventCollection;
+			calendar.cEvents = [];
+			calendar.cEvents = eventCollection;
 		}
 		
-		$.J.ClearEventsOnCalendar();
-		_drawEventsOnCalendar();
+		calendar.ClearEventsOnCalendar();
+		calendar._drawEventsOnCalendar();
 	}
 	
-	$.J.ChangeMonth = function(dateIn) {
-		var returned = def.onMonthChanging.call(this, dateIn);
+	calendar.ChangeMonth = function(dateIn) {
+		var returned = calendar.def.onMonthChanging.call(this, dateIn);
 		if (!returned) {
-			$.J.DrawCalendar(dateIn);
-			def.onMonthChanged.call(this, dateIn);
+			calendar.DrawCalendar(dateIn);
+			calendar.def.onMonthChanged.call(this, dateIn);
 		}
 	}
 	
-	$.J.Initialize = function(options, events) {
+	calendar.Initialize = function(options, events) {
 		var today = new Date();
 		
-		options = $.extend(def, options);
+		options = $.extend(calendar.def, options);
 		
 		if (events) { 
-			$.J.ClearEventsOnCalendar();
-			cEvents = events;
+			calendar.ClearEventsOnCalendar();
+			calendar.cEvents = events;
 		}
 		
-		$.J.DrawCalendar();
+		calendar.DrawCalendar();
+		return calendar;
 	};
 	
 	
@@ -599,5 +613,8 @@
 		this.getDate = function() {
 			return this.date;
 		}
+	}
+	
+	
 	}
 })(jQuery);
